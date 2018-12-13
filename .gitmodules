@@ -1,0 +1,3 @@
+[submodule "src/oglutils"]
+	path = src/oglutils
+	url = https://gitlab.com/honza.vanek/oglutils.git
