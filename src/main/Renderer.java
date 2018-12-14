@@ -92,9 +92,9 @@ public class Renderer implements GLEventListener {
     }
 
     private void print(final int dataSize, final int columnsCount, final int groupCount, final IntBuffer data) {
-        String dashes = new String(new char[17 * groupCount]).replace("\0", "-");
+        String dashes = new String(new char[(groupSize * 4 + 1) * groupCount]).replace("\0", "-");
         for (int i = 0; i < dataSize; i++) {
-            if (i % columnsCount == 0) {
+            if (i > 0 && i % columnsCount == 0) {
                 System.out.println();
             }
             System.out.print(String.format("%02d, ", data.get(i)));
@@ -106,6 +106,7 @@ public class Renderer implements GLEventListener {
                 System.out.print(dashes);
             }
         }
+        System.out.println();
         System.out.println();
     }
 
