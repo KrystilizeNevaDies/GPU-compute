@@ -15,39 +15,29 @@ import java.util.Random;
 import static com.jogamp.opengl.GL2ES2.*;
 import static oglutils.ShaderUtils.COMPUTE_SHADER_SUPPORT_VERSION;
 
-/**
- * GLSL sample:<br/>
- * Using computy shader for searching minimal key value<br/>
- * Requires JOGL 4.3.0 or newer
- *
- * @author PGRF FIM UHK
- * @version 2.0
- * @since 2016-09-09
- */
 public class Renderer implements GLEventListener {
+
+    private final static int ITEM_SIZE = 4; // integer has four bytes
 
     private int computeProgram;
     private int locColumnsCount;
-    private int locOffset;
 
     private int shrinkProgram;
     private int locOriginalColumnsCount, locShrinkColumnsCount;
 
     private int[] locBuffer;
 
-    private final int groupSize = 4;
+    private final int groupSize = 2; // limit 1536 -> 39
 
-    private int origColumnsCount = 16;
+    private int origColumnsCount = 8;
     private int groupCount = origColumnsCount / groupSize;
-    private final int originalDataSize = origColumnsCount * origColumnsCount;
+    private int originalDataSize = origColumnsCount * origColumnsCount;
     private IntBuffer data = IntBuffer.allocate(originalDataSize);
     private IntBuffer dataOut = Buffers.newDirectIntBuffer(originalDataSize);
 
     private int shrinkColumnCount = origColumnsCount / groupSize;
     private int shrinkDataSize = shrinkColumnCount * shrinkColumnCount;
     private IntBuffer dataShrink = Buffers.newDirectIntBuffer(shrinkDataSize);
-
-    private int offset = 1, compute = 0;
 
     @Override
     public void init(GLAutoDrawable glDrawable) {
@@ -65,39 +55,35 @@ public class Renderer implements GLEventListener {
         computeProgram = ShaderUtils.loadProgram(gl, "/computeTest");
         shrinkProgram = ShaderUtils.loadProgram(gl, "/shrink");
 
-        locOffset = gl.glGetUniformLocation(computeProgram, "offset");
         locColumnsCount = gl.glGetUniformLocation(computeProgram, "columnsCount");
-        locOriginalColumnsCount= gl.glGetUniformLocation(shrinkProgram, "originalColumnsCount");
+        locOriginalColumnsCount = gl.glGetUniformLocation(shrinkProgram, "originalColumnsCount");
         locShrinkColumnsCount = gl.glGetUniformLocation(shrinkProgram, "shrinkColumnsCount");
 
         // buffer initialization
         data.rewind();
         Random r = new Random();
         for (int i = 0; i < originalDataSize; i++) {
-            data.put(i, r.nextInt(99));
+            data.put(i, r.nextInt(100));
         }
 
-        System.out.print("Input values");
+        System.out.println("Input values");
         print(originalDataSize, origColumnsCount, groupCount, data);
 
         // declare and generate a buffer object name
-        locBuffer = new int[3];
-        gl.glGenBuffers(3, locBuffer, 0);
+        locBuffer = new int[2];
+        gl.glGenBuffers(2, locBuffer, 0);
 
         // bind the buffer and define its initial storage capacity
         gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
-        gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, 4 * originalDataSize, data, GL4.GL_DYNAMIC_DRAW);
+        gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, ITEM_SIZE * originalDataSize, data, GL4.GL_DYNAMIC_DRAW);
 
         gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
-        gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, 4 * originalDataSize, dataOut, GL4.GL_DYNAMIC_DRAW);
-
-        gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[2]);
-        gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, 4 * shrinkDataSize, dataShrink, GL4.GL_DYNAMIC_DRAW);
+        gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, ITEM_SIZE * originalDataSize, dataOut, GL4.GL_DYNAMIC_DRAW);
 
         // unbind the buffer
         gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, 0);
 
-        //assign the index of shader storage block to the binding point (see shader)
+        // assign the index of shader storage block to the binding point (see shader)
         gl.glShaderStorageBlockBinding(computeProgram, 0, 0); //input buffer
         gl.glShaderStorageBlockBinding(computeProgram, 1, 1); //output buffer
 
@@ -134,48 +120,30 @@ public class Renderer implements GLEventListener {
         gl.glGenQueries(3, timesBuffer);
         gl.glQueryCounter(timesBuffer.get(0), GL_TIMESTAMP);
 
-        if (offset > 0) {
+        if (shrinkColumnCount > 0) {
             gl.glUseProgram(computeProgram);
 
-            gl.glUniform1i(locOffset, offset);
             gl.glUniform1i(locColumnsCount, origColumnsCount);
 
             //set input and output buffer
-            //if (compute % 2 == 0) {
-                //bind input buffer
-                gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
-                gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 0, locBuffer[0]);
-                //bind output buffer
-                gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
-                gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 1, locBuffer[1]);
-            /*} else {
-                //bind input buffer
-                gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
-                gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 0, locBuffer[1]);
-                //bind output buffer
-                gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
-                gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 1, locBuffer[0]);
-            }*/
+            gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
+            gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 0, locBuffer[0]);
+
+            gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
+            gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 1, locBuffer[1]);
+
             gl.glQueryCounter(timesBuffer.get(1), GL_TIMESTAMP);
-
             gl.glDispatchCompute(origColumnsCount / groupSize, origColumnsCount / groupSize, 1);
-
             gl.glQueryCounter(timesBuffer.get(2), GL_TIMESTAMP);
 
-            getTime(gl, timesBuffer);
+            getAndShowTime(gl, timesBuffer);
+
             // make sure writing to image has finished before read
             gl.glMemoryBarrier(GL4.GL_SHADER_STORAGE_BARRIER_BIT);
+            gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
+            gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, ITEM_SIZE * originalDataSize, dataOut);
 
-            if (compute % 2 == 0) {
-                gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
-            } else {
-                gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
-            }
-
-            gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, 4 * originalDataSize, dataOut);
-
-            System.out.println();
-            System.out.print("Output values");
+            System.out.println("Output values");
             dataOut.rewind();
             print(originalDataSize, origColumnsCount, groupCount, dataOut);
 
@@ -185,34 +153,44 @@ public class Renderer implements GLEventListener {
             gl.glUniform1i(locShrinkColumnsCount, shrinkColumnCount);
             gl.glUniform1i(locOriginalColumnsCount, origColumnsCount);
 
-
-            //bind input buffer
+            // bind input and output buffer
             gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
             gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 0, locBuffer[1]);
-            //bind output buffer
-            gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[2]);
-            gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 1, locBuffer[2]);
 
+            gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
+            gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 1, locBuffer[0]);
 
             gl.glDispatchCompute(origColumnsCount / groupSize, origColumnsCount / groupSize, 1);
 
 
-            gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[2]);
-            gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, 4 * shrinkDataSize, dataShrink);
-            System.out.print("Shrink values");
+            gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
+            gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, ITEM_SIZE * shrinkDataSize, dataShrink);
+            System.out.println("Shrinked values");
             dataShrink.rewind();
             print(shrinkDataSize, shrinkColumnCount, groupCount / groupSize, dataShrink);
 
-            compute++;
+            //compute++;
             //offset = offset / 2;
-            offset--;
+            //offset--;
+            originalDataSize /= 4;
+            origColumnsCount /= groupSize;
+            shrinkDataSize /= 4;
+            shrinkColumnCount /= groupSize;
 
+            groupCount /= groupSize;
+
+            if (shrinkColumnCount == 0) {
+                gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
+                gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, ITEM_SIZE, dataShrink);
+                System.out.println("Final value");
+                System.out.println(dataShrink.get(0));
+            }
         } else {
             System.exit(0);
         }
     }
 
-    private void getTime(GL4 gl, IntBuffer timesBuffer) {
+    private void getAndShowTime(GL4 gl, IntBuffer timesBuffer) {
 
         IntBuffer stopTimerAvailable = IntBuffer.allocate(1);
         stopTimerAvailable.put(0, 0);

@@ -2,7 +2,7 @@
 #extension GL_ARB_compute_shader : enable
 #extension GL_ARB_shader_storage_buffer_object : enable
 
-layout (local_size_x = 4, local_size_y = 4, local_size_z = 1) in;
+layout (local_size_x = 2, local_size_y = 2, local_size_z = 1) in;
 
 uniform int originalColumnsCount;
 uniform int shrinkColumnsCount;
@@ -19,8 +19,8 @@ layout(binding = 1) buffer Output {
 
 
 void main () {
-    uint index = gl_GlobalInvocationID.x * 16 + gl_GlobalInvocationID.y;
+    uint index = gl_GlobalInvocationID.x * originalColumnsCount + gl_GlobalInvocationID.y;
     uint value = input_data.elements[index];
 
-    output_data.elements[gl_WorkGroupID.x * 4 + gl_WorkGroupID.y] = value;
+    output_data.elements[gl_WorkGroupID.x * shrinkColumnsCount + gl_WorkGroupID.y] = value;
  }
