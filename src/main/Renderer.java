@@ -52,6 +52,16 @@ public class Renderer implements GLEventListener {
         glDrawable.setGL(new DebugGL4(glDrawable.getGL().getGL4()));
         GL4 gl = glDrawable.getGL().getGL4();
 
+        //Limits on work group size per dimension
+        int[] val = new int[1];
+        for (int dim = 0; dim < 3; dim++) {
+            gl.glGetIntegeri_v(GL4.GL_MAX_COMPUTE_WORK_GROUP_SIZE, dim, val, 0);
+            System.out.println("GL_MAX_COMPUTE_WORK_GROUP_SIZE [" + dim + "]: " + val[0]);
+        }
+        LongBuffer val2 = LongBuffer.allocate(1);
+        gl.glGetInteger64v(GL4.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, val2);
+        System.out.println("GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS: " + val2.get(0));
+
         computeProgram = ShaderUtils.loadProgram(gl, "/computeTest");
         shrinkProgram = ShaderUtils.loadProgram(gl, "/shrink");
 
