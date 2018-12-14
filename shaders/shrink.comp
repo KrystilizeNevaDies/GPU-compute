@@ -8,13 +8,11 @@ uniform int originalColumnsCount;
 uniform int shrinkColumnsCount;
 
 layout(binding = 0) buffer Input {
-	uint elements[];
+    uint elements[];
 } input_data;
 
 layout(binding = 1) buffer Output {
-	uint elements[];
-	// musí být jednorozměrné, aby si to domyslelo velikost
-	// dvourozměrné vyžaduje zadat jeden rozměr, ten se ale mění a on nebere nekonstantní proměnné (uniform size)
+    uint elements[];
 } output_data;
 
 
@@ -23,4 +21,4 @@ void main () {
     uint value = input_data.elements[index];
 
     output_data.elements[gl_WorkGroupID.x * shrinkColumnsCount + gl_WorkGroupID.y] = value;
- }
+}
