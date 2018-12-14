@@ -62,7 +62,7 @@ public class Renderer implements GLEventListener {
         gl.glGetInteger64v(GL4.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, val2);
         System.out.println("GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS: " + val2.get(0));
 
-        computeProgram = ShaderUtils.loadProgram(gl, "/computeTest");
+        computeProgram = ShaderUtils.loadProgram(gl, "/computeMax");
         shrinkProgram = ShaderUtils.loadProgram(gl, "/shrink");
 
         locColumnsCount = gl.glGetUniformLocation(computeProgram, "columnsCount");
