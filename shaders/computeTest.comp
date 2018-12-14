@@ -8,7 +8,7 @@ layout (local_size_x = 4, local_size_y = 4, local_size_z = 1) in;
 shared uint foo;
 uint test;
 uniform int offset;
-uniform int size;
+uniform int columnsCount;
 
 layout(binding = 0) buffer Input {
 	uint elements[];
@@ -27,7 +27,7 @@ void main () {
     //memoryBarrier();
 
     //uint value = input_data.elements[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y];
-    uint index = gl_GlobalInvocationID.x * size + gl_GlobalInvocationID.y;
+    uint index = gl_GlobalInvocationID.x * columnsCount + gl_GlobalInvocationID.y;
     uint value = input_data.elements[index];
     //test = atomicAdd(foo, 1);
     test = atomicMax(foo, value);
