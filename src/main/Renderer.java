@@ -99,6 +99,16 @@ public class Renderer implements GLEventListener {
 
         gl.glShaderStorageBlockBinding(shrinkProgram, 0, 0); //shrink buffer
         gl.glShaderStorageBlockBinding(shrinkProgram, 1, 1); //shrink buffer
+
+/*
+        long time = System.currentTimeMillis();
+        IntBuffer testData = IntBuffer.allocate(400000000);
+        System.out.println(System.currentTimeMillis() - time);
+
+        time = System.currentTimeMillis();
+        IntBuffer testData2 = Buffers.newDirectIntBuffer(testData.array(), 0, 100000000);
+        System.out.println(System.currentTimeMillis() - time);
+*/
     }
 
     private void print(final int dataSize, final int columnsCount, final int groupCount, final IntBuffer data) {
