@@ -31,6 +31,7 @@ void main () {
     //test = atomicAdd(foo, 1);
     test = atomicMax(foo, value);
     //foo = foo + 1;
+    barrier();
     output_data.elements[index] = foo; //test;
 
 
