@@ -195,12 +195,9 @@ public class Renderer implements GLEventListener {
                 print(shrinkDataSize, shrinkColumnCount, groupCount / groupSize, dataOut);
             }
 
-            //compute++;
-            //offset = offset / 2;
-            //offset--;
-            originalDataSize /= 4;
+            originalDataSize /= Math.pow(groupSize, 2);
             origColumnsCount /= groupSize;
-            shrinkDataSize /= 4;
+            shrinkDataSize /= Math.pow(groupSize, 2);
             shrinkColumnCount /= groupSize;
 
             groupCount /= groupSize;
