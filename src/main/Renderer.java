@@ -209,6 +209,7 @@ public class Renderer implements GLEventListener {
                 System.out.println(dataOut.get(0));
             }
         } else {
+            dispose(glDrawable);
             System.exit(0);
         }
     }
@@ -240,8 +241,8 @@ public class Renderer implements GLEventListener {
     public void dispose(GLAutoDrawable glDrawable) {
         GL4 gl = glDrawable.getGL().getGL4();
         gl.glDeleteProgram(computeProgram);
+        gl.glDeleteProgram(shrinkProgram);
         gl.glDeleteBuffers(2, locBuffer, 0);
-        gl.glGenBuffers(2, locBuffer, 0);
     }
 
 }
