@@ -60,10 +60,19 @@ public class Renderer implements GLEventListener {
             System.out.println("GL_MAX_COMPUTE_WORK_GROUP_SIZE [" + dim + "]: " + val.get(0));
         }
 
-        // get limit on work group size
-        LongBuffer val2 = LongBuffer.allocate(1);
-        gl.glGetInteger64v(GL4.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, val2);
-        System.out.println("GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS: " + val2.get(0));
+        {
+            // get limit on work group size (sum on all dimensions)
+            LongBuffer val = LongBuffer.allocate(1);
+            gl.glGetInteger64v(GL4.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, val);
+            System.out.println("GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS: " + val.get(0));
+        }
+
+        // get limit on work group count per dimension
+        for (int dim = 0; dim < 3; dim++) {
+            IntBuffer val = IntBuffer.allocate(1);
+            gl.glGetIntegeri_v(GL4.GL_MAX_COMPUTE_WORK_GROUP_COUNT, dim, val);
+            System.out.println("GL_MAX_COMPUTE_WORK_GROUP_COUNT [" + dim + "]: " + val.get(0));
+        }
 
         // load programs
         computeProgram = ShaderUtils.loadProgram(gl, "/computeMax");
