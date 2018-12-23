@@ -53,19 +53,23 @@ public class Renderer implements GLEventListener {
         glDrawable.setGL(new DebugGL4(glDrawable.getGL().getGL4()));
         GL4 gl = glDrawable.getGL().getGL4();
 
-        //Limits on work group size per dimension
-        int[] val = new int[1];
+        // get limits on work group size per dimension
         for (int dim = 0; dim < 3; dim++) {
-            gl.glGetIntegeri_v(GL4.GL_MAX_COMPUTE_WORK_GROUP_SIZE, dim, val, 0);
-            System.out.println("GL_MAX_COMPUTE_WORK_GROUP_SIZE [" + dim + "]: " + val[0]);
+            IntBuffer val = IntBuffer.allocate(1);
+            gl.glGetIntegeri_v(GL4.GL_MAX_COMPUTE_WORK_GROUP_SIZE, dim, val);
+            System.out.println("GL_MAX_COMPUTE_WORK_GROUP_SIZE [" + dim + "]: " + val.get(0));
         }
+
+        // get limit on work group size
         LongBuffer val2 = LongBuffer.allocate(1);
         gl.glGetInteger64v(GL4.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, val2);
         System.out.println("GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS: " + val2.get(0));
 
+        // load programs
         computeProgram = ShaderUtils.loadProgram(gl, "/computeMax");
         shrinkProgram = ShaderUtils.loadProgram(gl, "/shrink");
 
+        // load uniforms
         locColumnsCount = gl.glGetUniformLocation(computeProgram, "columnsCount");
         locOriginalColumnsCount = gl.glGetUniformLocation(shrinkProgram, "originalColumnsCount");
         locShrinkColumnsCount = gl.glGetUniformLocation(shrinkProgram, "shrinkColumnsCount");
@@ -103,15 +107,13 @@ public class Renderer implements GLEventListener {
         gl.glShaderStorageBlockBinding(shrinkProgram, 0, 0); //shrink buffer
         gl.glShaderStorageBlockBinding(shrinkProgram, 1, 1); //shrink buffer
 
-/*
-        long time = System.currentTimeMillis();
-        IntBuffer testData = IntBuffer.allocate(400000000);
-        System.out.println(System.currentTimeMillis() - time);
-
-        time = System.currentTimeMillis();
-        IntBuffer testData2 = Buffers.newDirectIntBuffer(testData.array(), 0, 100000000);
-        System.out.println(System.currentTimeMillis() - time);
-*/
+//        long time = System.currentTimeMillis();
+//        IntBuffer testData = IntBuffer.allocate(400000000);
+//        System.out.println(System.currentTimeMillis() - time);
+//
+//        time = System.currentTimeMillis();
+//        IntBuffer testData2 = Buffers.newDirectIntBuffer(testData.array(), 0, 100000000);
+//        System.out.println(System.currentTimeMillis() - time);
     }
 
     private void print(final int dataSize, final int columnsCount, final int groupCount, final IntBuffer data) {
@@ -136,9 +138,6 @@ public class Renderer implements GLEventListener {
     @Override
     public void display(GLAutoDrawable glDrawable) {
         GL4 gl = glDrawable.getGL().getGL4();
-        //LongBuffer longBuffer = LongBuffer.allocate(1);
-        //gl.glGetInteger64v(GL_TIMESTAMP, longBuffer);
-        //System.out.println(String.format("Milliseconds: %f\n", longBuffer.get(0)/1000000.0));
 
         IntBuffer timesBuffer = IntBuffer.allocate(3);
         gl.glGenQueries(3, timesBuffer);
