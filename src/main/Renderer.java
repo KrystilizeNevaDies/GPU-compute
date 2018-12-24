@@ -159,6 +159,14 @@ public class Renderer implements GLEventListener {
         gl.glGenQueries(3, timesBuffer);
         gl.glQueryCounter(timesBuffer.get(0), GL_TIMESTAMP);
 
+//        IntBuffer timesBuffer2 = IntBuffer.allocate(1);
+//        gl.glGenQueries(1, timesBuffer2);
+//        gl.glBeginQuery(GL4.GL_TIME_ELAPSED, timesBuffer2.get(0));
+//        gl.glEndQuery(GL4.GL_TIME_ELAPSED);
+//        IntBuffer intBuffer = IntBuffer.allocate(1);
+//        gl.glGetQueryObjectiv(timesBuffer2.get(0), GL4.GL_QUERY_RESULT, intBuffer);
+//        System.out.println("Time elapsed: " + intBuffer.get(0));
+
         if (shrinkColumnCount > 0) {
             gl.glUseProgram(computeProgram);
 
