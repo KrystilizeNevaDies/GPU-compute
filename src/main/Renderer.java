@@ -84,11 +84,14 @@ public class Renderer implements GLEventListener {
         locShrinkColumnsCount = gl.glGetUniformLocation(shrinkProgram, "shrinkColumnsCount");
 
         // buffer initialization
+        long time = System.currentTimeMillis();
         data.rewind();
         Random r = new Random();
         for (int i = 0; i < originalDataSize; i++) {
             data.put(i, r.nextInt(100));
         }
+        data.put(9, 100);
+        System.out.println("Buffer initialization took " + (System.currentTimeMillis() - time) + " ms.");
 
         if (PRINT) {
             System.out.println("Input values");
@@ -99,22 +102,26 @@ public class Renderer implements GLEventListener {
         locBuffer = new int[2];
         gl.glGenBuffers(2, locBuffer, 0);
 
+        System.out.println("glBufferData...");
         // bind the buffer and define its initial storage capacity
         gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
         gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, ITEM_SIZE * originalDataSize, data, GL4.GL_DYNAMIC_DRAW);
 
         gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
         gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, ITEM_SIZE * originalDataSize, dataOut, GL4.GL_DYNAMIC_DRAW);
+        System.out.println("DONE");
 
         // unbind the buffer
         gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, 0);
 
+        System.out.println("glShaderStorageBlockBinding...");
         // assign the index of shader storage block to the binding point (see shader)
         gl.glShaderStorageBlockBinding(computeProgram, 0, 0); //input buffer
         gl.glShaderStorageBlockBinding(computeProgram, 1, 1); //output buffer
 
         gl.glShaderStorageBlockBinding(shrinkProgram, 0, 0); //shrink buffer
         gl.glShaderStorageBlockBinding(shrinkProgram, 1, 1); //shrink buffer
+        System.out.println("DONE");
 
 //        long time = System.currentTimeMillis();
 //        IntBuffer testData = IntBuffer.allocate(400000000);
@@ -164,6 +171,7 @@ public class Renderer implements GLEventListener {
             gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
             gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 1, locBuffer[1]);
 
+            System.out.println("Calling dispatch compute with " + groupCount + " group" + (groupCount > 1 ? "s" : "") +".");
             gl.glQueryCounter(timesBuffer.get(1), GL_TIMESTAMP);
             gl.glDispatchCompute(origColumnsCount / groupSize, origColumnsCount / groupSize, 1);
             gl.glQueryCounter(timesBuffer.get(2), GL_TIMESTAMP);
