@@ -105,10 +105,10 @@ public class Renderer implements GLEventListener {
         System.out.println("glBufferData...");
         // bind the buffer and define its initial storage capacity
         gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
-        gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, ITEM_SIZE * originalDataSize, data, GL4.GL_DYNAMIC_DRAW);
+        gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, ITEM_SIZE * originalDataSize, data, GL4.GL_STATIC_DRAW);
 
         gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
-        gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, ITEM_SIZE * originalDataSize, dataOut, GL4.GL_DYNAMIC_DRAW);
+        gl.glBufferData(GL4.GL_SHADER_STORAGE_BUFFER, ITEM_SIZE * originalDataSize, dataOut, GL4.GL_STATIC_DRAW);
         System.out.println("DONE");
 
         // unbind the buffer
