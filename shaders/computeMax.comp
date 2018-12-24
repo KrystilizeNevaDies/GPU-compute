@@ -1,11 +1,11 @@
 #version 450
 #extension GL_ARB_compute_shader : enable
 #extension GL_ARB_shader_storage_buffer_object : enable
-//#extension GL_NV_shader_atomic_float : enable
+//#extension GL_NV_shader_atomic_float : enable // support for floats in atomicAdd
 
 layout (local_size_x = 2, local_size_y = 2, local_size_z = 1) in;
 
-shared uint foo;
+shared uint max;
 uint test;
 uniform int columnsCount;
 
@@ -25,43 +25,11 @@ void main () {
     //barrier();
     //memoryBarrier();
 
-    //uint value = input_data.elements[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y];
     uint index = gl_GlobalInvocationID.x * columnsCount + gl_GlobalInvocationID.y;
     uint value = input_data.elements[index];
-    //test = atomicAdd(foo, 1);
-    test = atomicMax(foo, value);
-    //foo = foo + 1;
+    //test = atomicAdd(sum, 1);
+    //sum = sum + 1;
+    test = atomicMax(max, value);
     barrier();
-    output_data.elements[index] = foo; //test;
-
-
-
-    //uint index = gl_LocalInvocationID.x * 4 + gl_LocalInvocationID.y + 16 * (gl_WorkGroupID.x * 2 + gl_WorkGroupID.y);
-    //uint index = gl_GlobalInvocationID.x * 8 + gl_GlobalInvocationID.y;
-    //output_data.elements[index] = index;// + 16 * (gl_WorkGroupID.x * 2 + gl_WorkGroupID.y);
-
-
-    //output_data.elements[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y] = gl_GlobalInvocationID.x * 8 + gl_GlobalInvocationID.y;
-
-    //output_data.elements[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y] = input_data.elements[gl_GlobalInvocationID.x][gl_GlobalInvocationID.y];
-
-
-    //vec4(gl_WorkGroupID.x, gl_WorkGroupID.y, gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);
-
-    /*uvec3 local = gl_LocalInvocationID;
-
-    //if (local.x == 0 && local.y == 0) {
-    	uint index = gl_WorkGroupID.x;
-
-    	float key1 = input_data.elements[index].key;
-    	float key2 = input_data.elements[index + 1].key;
-
-    	//comparison to find the minimum of keys and update value
-    	if (key1 > key2) {
-    		output_data.elements[index].key = gl_GlobalInvocationID.x;
-    	} else {
-    		output_data.elements[index].key = gl_GlobalInvocationID.x;
-    	}
-    //}
-*/
+    output_data.elements[index] = max; //test;
  }
