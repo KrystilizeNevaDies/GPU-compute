@@ -167,6 +167,10 @@ public class Renderer implements GLEventListener {
 //        gl.glGetQueryObjectiv(timesBuffer2.get(0), GL4.GL_QUERY_RESULT, intBuffer);
 //        System.out.println("Time elapsed: " + intBuffer.get(0));
 
+        IntBuffer invocationsQueryId = IntBuffer.allocate(1);
+        gl.glGenQueries(1, invocationsQueryId);
+        gl.glBeginQuery(GL4.GL_COMPUTE_SHADER_INVOCATIONS_ARB, invocationsQueryId.get(0));
+
         if (shrinkColumnCount > 0) {
             gl.glUseProgram(computeProgram);
 
@@ -190,6 +194,13 @@ public class Renderer implements GLEventListener {
             gl.glMemoryBarrier(GL4.GL_SHADER_STORAGE_BARRIER_BIT);
             gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
             gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, ITEM_SIZE * originalDataSize, dataOut);
+
+            // get compute shader invocations count
+            gl.glEndQuery(GL4.GL_COMPUTE_SHADER_INVOCATIONS_ARB);
+            IntBuffer invocationsCount = IntBuffer.allocate(1);
+            gl.glGetQueryObjectiv(invocationsQueryId.get(0), GL4.GL_QUERY_RESULT, invocationsCount);
+            System.out.println("Compute shader invocations: " + invocationsCount.get(0));
+            System.out.println();
 
             if (PRINT) {
                 System.out.println("Output values");
