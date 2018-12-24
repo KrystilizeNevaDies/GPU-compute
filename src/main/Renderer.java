@@ -17,7 +17,7 @@ import static oglutils.ShaderUtils.COMPUTE_SHADER_SUPPORT_VERSION;
 
 public class Renderer implements GLEventListener {
 
-    private final static int ITEM_SIZE = 4; // integer has four bytes
+    private final static int ITEM_SIZE = 4; // integer has 4 bytes
 
     private int computeProgram;
     private int locColumnsCount;
@@ -179,7 +179,7 @@ public class Renderer implements GLEventListener {
             gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
             gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 1, locBuffer[1]);
 
-            System.out.println("Calling dispatch compute with " + groupCount + " group" + (groupCount > 1 ? "s" : "") +".");
+            System.out.println("Calling dispatch compute with " + groupCount + " group" + (groupCount > 1 ? "s" : "") + ".");
             gl.glQueryCounter(timesBuffer.get(1), GL_TIMESTAMP);
             gl.glDispatchCompute(origColumnsCount / groupSize, origColumnsCount / groupSize, 1);
             gl.glQueryCounter(timesBuffer.get(2), GL_TIMESTAMP);
