@@ -32,8 +32,8 @@ public class Renderer implements GLEventListener {
     private int origColumnsCount = 8;
     private int groupCount = origColumnsCount / groupSize;
     private int originalDataSize = origColumnsCount * origColumnsCount;
-    private IntBuffer data = IntBuffer.allocate(originalDataSize);
-    private IntBuffer dataOut = Buffers.newDirectIntBuffer(originalDataSize);
+    private final IntBuffer data = IntBuffer.allocate(originalDataSize);
+    private final IntBuffer dataOut = Buffers.newDirectIntBuffer(originalDataSize);
 
     private int shrinkColumnCount = origColumnsCount / groupSize;
     private int shrinkDataSize = shrinkColumnCount * shrinkColumnCount;
@@ -42,10 +42,10 @@ public class Renderer implements GLEventListener {
 
     @Override
     public void init(GLAutoDrawable glDrawable) {
-        // check whether shaders are supported
-        OGLUtils.shaderCheck(glDrawable.getGL().getGL2GL3());
-        if ((OGLUtils.getVersionGLSL(glDrawable.getGL().getGL2GL3()) < COMPUTE_SHADER_SUPPORT_VERSION)
-                && (!OGLUtils.getExtensions(glDrawable.getGL().getGL2GL3()).contains("compute_shader"))) {
+        // check if shaders are supported
+        OGLUtils.shaderCheck(glDrawable.getGL().getGL4());
+        if ((OGLUtils.getVersionGLSL(glDrawable.getGL().getGL4()) < COMPUTE_SHADER_SUPPORT_VERSION)
+                && (!OGLUtils.getExtensions(glDrawable.getGL().getGL4()).contains("compute_shader"))) {
             System.err.println("Compute shader is not supported");
             System.exit(0);
         }
