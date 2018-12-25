@@ -19,7 +19,7 @@ layout(binding = 1) buffer Output {
 	// dvourozměrné vyžaduje zadat jeden rozměr, ten se ale mění a on nebere nekonstantní proměnné (uniform size)
 } output_data;
 
-
+// https://www.khronos.org/registry/OpenGL-Refpages/gl4/html/atomicMax.xhtml
 void main () {
     //memoryBarrierShared();
     //barrier();

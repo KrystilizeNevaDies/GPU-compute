@@ -156,6 +156,7 @@ public class Renderer implements GLEventListener {
         gl.glGenQueries(3, timesBuffer);
         gl.glQueryCounter(timesBuffer.get(0), GL4.GL_TIMESTAMP);
 
+// GL_TIME_ELAPSED test
 //        IntBuffer timesBuffer2 = IntBuffer.allocate(1);
 //        gl.glGenQueries(1, timesBuffer2);
 //        gl.glBeginQuery(GL4.GL_TIME_ELAPSED, timesBuffer2.get(0));
@@ -163,7 +164,9 @@ public class Renderer implements GLEventListener {
 //        IntBuffer intBuffer = IntBuffer.allocate(1);
 //        gl.glGetQueryObjectiv(timesBuffer2.get(0), GL4.GL_QUERY_RESULT, intBuffer);
 //        System.out.println("Time elapsed: " + intBuffer.get(0));
+//        https://stackoverflow.com/questions/24446207/what-is-the-difference-between-querying-time-elapsed-in-opengl-with-gl-time-elap
 
+//        https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_pipeline_statistics_query.txt
         IntBuffer invocationsQueryId = IntBuffer.allocate(1);
         gl.glGenQueries(1, invocationsQueryId);
         gl.glBeginQuery(GL4.GL_COMPUTE_SHADER_INVOCATIONS_ARB, invocationsQueryId.get(0));
@@ -205,6 +208,8 @@ public class Renderer implements GLEventListener {
                 print(originalDataSize, origColumnsCount, groupCount, dataOut);
             }
 
+            // second step
+            // shrink data
             gl.glUseProgram(shrinkProgram);
 
             gl.glUniform1i(locShrinkColumnsCount, shrinkColumnCount);
