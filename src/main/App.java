@@ -8,15 +8,25 @@ import com.jogamp.opengl.util.FPSAnimator;
 import javax.swing.*;
 import java.awt.*;
 
+import static main.App.Mode.MAX;
+import static main.App.Mode.SORT;
+
 public class App {
 
-    private App() {
+    enum Mode {
+        MAX, SORT
+    }
+
+    private App(Mode mode) {
         try {
             GLProfile profile = GLProfile.getMaximum(true);
             GLCapabilities capabilities = new GLCapabilities(profile);
 
             GLCanvas canvas = new GLCanvas(capabilities);
-            canvas.addGLEventListener(new Renderer());
+
+            if (mode == MAX) canvas.addGLEventListener(new Renderer());
+            else canvas.addGLEventListener(new RendererSortBitonic());
+
             canvas.setSize(1, 1);
 
             Frame testFrame = new Frame("TestFrame");
@@ -31,7 +41,13 @@ public class App {
     }
 
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(App::new);
+        final Mode mode;
+        if (args.length > 0) {
+            if (args[0].equalsIgnoreCase("sort")) mode = SORT;
+            else mode = MAX;
+        } else mode = MAX;
+
+        SwingUtilities.invokeLater(() -> new App(mode));
     }
 
 }
