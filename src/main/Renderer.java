@@ -12,9 +12,6 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.Random;
 
-import static com.jogamp.opengl.GL2ES2.*;
-import static oglutils.ShaderUtils.COMPUTE_SHADER_SUPPORT_VERSION;
-
 public class Renderer implements GLEventListener {
 
     private final static int ITEM_SIZE = 4; // integer has 4 bytes
@@ -44,7 +41,7 @@ public class Renderer implements GLEventListener {
     public void init(GLAutoDrawable glDrawable) {
         // check if shaders are supported
         OGLUtils.shaderCheck(glDrawable.getGL().getGL4());
-        if ((OGLUtils.getVersionGLSL(glDrawable.getGL().getGL4()) < COMPUTE_SHADER_SUPPORT_VERSION)
+        if ((OGLUtils.getVersionGLSL(glDrawable.getGL().getGL4()) < ShaderUtils.COMPUTE_SHADER_SUPPORT_VERSION)
                 && (!OGLUtils.getExtensions(glDrawable.getGL().getGL4()).contains("compute_shader"))) {
             System.err.println("Compute shader is not supported");
             System.exit(0);
@@ -157,7 +154,7 @@ public class Renderer implements GLEventListener {
 
         IntBuffer timesBuffer = IntBuffer.allocate(3);
         gl.glGenQueries(3, timesBuffer);
-        gl.glQueryCounter(timesBuffer.get(0), GL_TIMESTAMP);
+        gl.glQueryCounter(timesBuffer.get(0), GL4.GL_TIMESTAMP);
 
 //        IntBuffer timesBuffer2 = IntBuffer.allocate(1);
 //        gl.glGenQueries(1, timesBuffer2);
@@ -254,14 +251,14 @@ public class Renderer implements GLEventListener {
         IntBuffer stopTimerAvailable = IntBuffer.allocate(1);
         stopTimerAvailable.put(0, 0);
         while (stopTimerAvailable.get(0) == 0) {
-            gl.glGetQueryObjectiv(timesBuffer.get(2), GL_QUERY_RESULT_AVAILABLE, stopTimerAvailable);
+            gl.glGetQueryObjectiv(timesBuffer.get(2), GL4.GL_QUERY_RESULT_AVAILABLE, stopTimerAvailable);
         }
         LongBuffer time1 = LongBuffer.allocate(1);
         LongBuffer time2 = LongBuffer.allocate(1);
         LongBuffer time3 = LongBuffer.allocate(1);
-        gl.glGetQueryObjectui64v(timesBuffer.get(0), GL_QUERY_RESULT, time1);
-        gl.glGetQueryObjectui64v(timesBuffer.get(1), GL_QUERY_RESULT, time2);
-        gl.glGetQueryObjectui64v(timesBuffer.get(2), GL_QUERY_RESULT, time3);
+        gl.glGetQueryObjectui64v(timesBuffer.get(0), GL4.GL_QUERY_RESULT, time1);
+        gl.glGetQueryObjectui64v(timesBuffer.get(1), GL4.GL_QUERY_RESULT, time2);
+        gl.glGetQueryObjectui64v(timesBuffer.get(2), GL4.GL_QUERY_RESULT, time3);
 
         //System.out.println(String.format("Time spent on the GPU 2-1 (bind): %f ms", (time2.get(0) - time1.get(0)) / 1000000.0));
         System.out.println(String.format("Time spent on the GPU 3-2 (dispatch): %f ms", (time3.get(0) - time2.get(0)) / 1000000.0));
