@@ -32,7 +32,7 @@ public class Renderer implements GLEventListener {
     private final IntBuffer data = IntBuffer.allocate(originalDataSize);
     private final IntBuffer dataOut = Buffers.newDirectIntBuffer(originalDataSize);
 
-    private int shrinkColumnCount = origColumnsCount / groupSize;
+    private int shrinkColumnCount = groupCount;
     private int shrinkDataSize = shrinkColumnCount * shrinkColumnCount;
 
     private final boolean PRINT = false;
@@ -183,10 +183,11 @@ public class Renderer implements GLEventListener {
             gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
             gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 1, locBuffer[1]);
 
-            System.out.println("Calling dispatch compute with " + groupCount + " group" + (groupCount > 1 ? "s" : "") + ".");
-            gl.glQueryCounter(timesBuffer.get(1), GL_TIMESTAMP);
-            gl.glDispatchCompute(origColumnsCount / groupSize, origColumnsCount / groupSize, 1);
-            gl.glQueryCounter(timesBuffer.get(2), GL_TIMESTAMP);
+            // dispatch compute, query counter
+            System.out.println("Calling dispatch compute with " + groupCount + "^2 group" + (groupCount > 1 ? "s" : "") + ".");
+            gl.glQueryCounter(timesBuffer.get(1), GL4.GL_TIMESTAMP);
+            gl.glDispatchCompute(groupCount, groupCount, 1);
+            gl.glQueryCounter(timesBuffer.get(2), GL4.GL_TIMESTAMP);
 
             getAndShowTime(gl, timesBuffer);
 
@@ -222,7 +223,7 @@ public class Renderer implements GLEventListener {
             gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
             gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 1, locBuffer[0]);
 
-            gl.glDispatchCompute(origColumnsCount / groupSize, origColumnsCount / groupSize, 1);
+            gl.glDispatchCompute(groupCount, groupCount, 1);
 
             if (PRINT) {
                 gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
