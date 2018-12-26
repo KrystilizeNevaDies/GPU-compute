@@ -191,11 +191,6 @@ public class Renderer implements GLEventListener {
 
             getAndShowTime(gl, timesBuffer);
 
-            // make sure writing to image has finished before read
-            gl.glMemoryBarrier(GL4.GL_SHADER_STORAGE_BARRIER_BIT);
-            gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
-            gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, ITEM_SIZE * originalDataSize, dataOut);
-
             // get compute shader invocations count
             gl.glEndQuery(GL4.GL_COMPUTE_SHADER_INVOCATIONS_ARB);
             IntBuffer invocationsCount = IntBuffer.allocate(1);
@@ -204,6 +199,11 @@ public class Renderer implements GLEventListener {
             System.out.println();
 
             if (PRINT) {
+                // make sure writing to image has finished before read
+                gl.glMemoryBarrier(GL4.GL_SHADER_STORAGE_BARRIER_BIT);
+                gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[1]);
+                gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, ITEM_SIZE * originalDataSize, dataOut);
+
                 System.out.println("Output values");
                 dataOut.rewind();
                 print(originalDataSize, origColumnsCount, groupCount, dataOut);
