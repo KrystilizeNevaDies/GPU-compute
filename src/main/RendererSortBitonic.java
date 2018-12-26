@@ -30,6 +30,8 @@ public class RendererSortBitonic implements GLEventListener {
 
     private final boolean PRINT = false;
 
+    private double totalTime = 0;
+
     @Override
     public void init(GLAutoDrawable glDrawable) {
         // check if shaders are supported
@@ -168,6 +170,8 @@ public class RendererSortBitonic implements GLEventListener {
             }
 
             if (iterationsCount == iterationsGoal + 1) {
+                System.out.println();
+                System.out.println("Total time: " + totalTime + " ms");
                 dispose(glDrawable);
                 System.exit(0);
             }
@@ -185,7 +189,9 @@ public class RendererSortBitonic implements GLEventListener {
         gl.glGetQueryObjectui64v(timesBuffer.get(0), GL4.GL_QUERY_RESULT, time1);
         gl.glGetQueryObjectui64v(timesBuffer.get(1), GL4.GL_QUERY_RESULT, time2);
 
-        System.out.println(String.format("Time spent on the GPU (dispatch): %f ms", (time2.get(0) - time1.get(0)) / 1000000.0));
+        double time = (time2.get(0) - time1.get(0)) / 1000000.0;
+        totalTime += time;
+        System.out.println(String.format("Time spent on the GPU (dispatch): %f ms", time));
     }
 
     @Override
