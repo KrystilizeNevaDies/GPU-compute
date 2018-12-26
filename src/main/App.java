@@ -24,7 +24,7 @@ public class App {
 
             GLCanvas canvas = new GLCanvas(capabilities);
 
-            if (mode == MAX) canvas.addGLEventListener(new Renderer());
+            if (mode == MAX) canvas.addGLEventListener(new RendererMax());
             else canvas.addGLEventListener(new RendererSortBitonic());
 
             canvas.setSize(1, 1);

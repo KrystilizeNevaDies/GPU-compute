@@ -12,7 +12,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.Random;
 
-public class Renderer implements GLEventListener {
+public class RendererMax implements GLEventListener {
 
     private final static int ITEM_SIZE = 4; // integer has 4 bytes
 
