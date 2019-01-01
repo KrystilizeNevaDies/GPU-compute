@@ -4,9 +4,9 @@ import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Multithreaded searching for maximum value in array
+ * Multithreaded searching for maximum value in array.
  */
-public class CpuMax {
+public class CpuMaxMulti {
 
     public static void main(String[] args) throws InterruptedException {
         // get number of threads
