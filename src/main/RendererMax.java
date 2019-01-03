@@ -24,8 +24,8 @@ public class RendererMax implements GLEventListener {
 
     private int[] locBuffer;
 
-    private final int GROUP_SIZE = 2; // limit 1536 -> 39
-    private final int DATA_SIZE = 1 << 6;
+    private final int GROUP_SIZE = 8; // limit 1536 -> 39
+    private final int DATA_SIZE = 1 << 10;
 
     private int origColumnsCount = DATA_SIZE;
     // private int origColumnsCountRounded = (origColumnsCount / GROUP_SIZE) * GROUP_SIZE + ((origColumnsCount % GROUP_SIZE == 0) ? 0 : GROUP_SIZE);
