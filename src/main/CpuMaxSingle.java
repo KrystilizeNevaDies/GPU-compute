@@ -14,14 +14,14 @@ public class CpuMaxSingle {
 
     public static void main(String[] args) {
 
-        for (int m = 1; m <= 25; m++) {
+        for (int m = 1; m <= 30; m++) {
 
             final int dataSize = 1 << m;
 
             double times = 0;
             int zeros = 0;
             long max = 0; // only done so JIT doesn't over-optimize for loop, which was happening when maxTemp was not used
-            final int count = m <= 20 ? 100000 : 10000;
+            final int count = m <= 20 ? 100000 : (m <= 25 ? 10000 : 500);
 
             for (int c = 0; c < count; c++) {
                 final int[] data = new int[dataSize];
