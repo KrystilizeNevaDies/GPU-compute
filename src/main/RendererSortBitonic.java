@@ -5,12 +5,12 @@ import com.jogamp.opengl.DebugGL4;
 import com.jogamp.opengl.GL4;
 import com.jogamp.opengl.GLAutoDrawable;
 import com.jogamp.opengl.GLEventListener;
-import oglutils.OGLUtils;
 import oglutils.ShaderUtils;
 
 import java.nio.IntBuffer;
-import java.nio.LongBuffer;
 import java.util.Random;
+
+import static main.RendererUtils.*;
 
 public class RendererSortBitonic implements GLEventListener {
 
@@ -20,52 +20,30 @@ public class RendererSortBitonic implements GLEventListener {
     private int locGroupSize, locBrown, locDataCount;
     private int[] locBuffer;
 
-    private final int dataCount = 2097152;
+    private final int dataCount = 1 << 7;
     private final IntBuffer data = Buffers.newDirectIntBuffer(dataCount);
 
+    @SuppressWarnings("FieldCanBeLocal")
     private int iterationsCount = 1;
     private final int iterationsGoal = (int) Math.ceil(Math.log(dataCount) / Math.log(2)); // log2(dataCount)
+    @SuppressWarnings("FieldCanBeLocal")
     private int currentGroupSize = 2;
+    @SuppressWarnings("FieldCanBeLocal")
     private boolean brownGroup = true;
 
-    private final boolean PRINT = false;
+    private static final boolean PRINT = false;
+    private static final boolean STOPWATCH = true;
 
     private double totalTime = 0;
 
     @Override
     public void init(GLAutoDrawable glDrawable) {
-        // check if shaders are supported
-        OGLUtils.shaderCheck(glDrawable.getGL().getGL4());
-        if ((OGLUtils.getVersionGLSL(glDrawable.getGL().getGL4()) < ShaderUtils.COMPUTE_SHADER_SUPPORT_VERSION)
-                && (!OGLUtils.getExtensions(glDrawable.getGL().getGL4()).contains("compute_shader"))) {
-            System.err.println("Compute shader is not supported");
-            System.exit(0);
-        }
+        checkShaders(glDrawable);
 
         glDrawable.setGL(new DebugGL4(glDrawable.getGL().getGL4()));
         GL4 gl = glDrawable.getGL().getGL4();
 
-        // get limits on work group size per dimension
-        for (int dim = 0; dim < 3; dim++) {
-            IntBuffer val = IntBuffer.allocate(1);
-            gl.glGetIntegeri_v(GL4.GL_MAX_COMPUTE_WORK_GROUP_SIZE, dim, val);
-            System.out.println("GL_MAX_COMPUTE_WORK_GROUP_SIZE [" + dim + "]: " + val.get(0));
-        }
-
-        {
-            // get limit on work group size (sum on all dimensions)
-            LongBuffer val = LongBuffer.allocate(1);
-            gl.glGetInteger64v(GL4.GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, val);
-            System.out.println("GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS: " + val.get(0));
-        }
-
-        // get limit on work group count per dimension
-        for (int dim = 0; dim < 3; dim++) {
-            IntBuffer val = IntBuffer.allocate(1);
-            gl.glGetIntegeri_v(GL4.GL_MAX_COMPUTE_WORK_GROUP_COUNT, dim, val);
-            System.out.println("GL_MAX_COMPUTE_WORK_GROUP_COUNT [" + dim + "]: " + val.get(0));
-        }
-
+        printShaderLimits(gl);
         // load programs
         computeProgram = ShaderUtils.loadProgram(gl, "/computeSort");
 
@@ -116,82 +94,102 @@ public class RendererSortBitonic implements GLEventListener {
 
     @Override
     public void display(GLAutoDrawable glDrawable) {
-        GL4 gl = glDrawable.getGL().getGL4();
+        final GL4 gl = glDrawable.getGL().getGL4();
 
-        while (true) {
-            IntBuffer timesBuffer = IntBuffer.allocate(2);
-            gl.glGenQueries(2, timesBuffer);
+        int count = -1; // first
+        double timesSum = 0;
 
-            // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_pipeline_statistics_query.txt
-            IntBuffer invocationsQueryId = IntBuffer.allocate(1);
-            gl.glGenQueries(1, invocationsQueryId);
-            gl.glBeginQuery(GL4.GL_COMPUTE_SHADER_INVOCATIONS_ARB, invocationsQueryId.get(0));
+        while (count++ < 2) {
 
-            gl.glUseProgram(computeProgram);
+            iterationsCount = 1;
+            currentGroupSize = 2;
+            brownGroup = true;
 
-            gl.glUniform1i(locBrown, brownGroup ? 1 : 0);
-            gl.glUniform1i(locGroupSize, currentGroupSize);
-            gl.glUniform1i(locDataCount, dataCount);
+            boolean finish = false;
 
-            // set input and output buffer
-            gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
-            gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 0, locBuffer[0]);
+            while (!finish) {
 
-            // dispatch compute, query counter
-            gl.glQueryCounter(timesBuffer.get(0), GL4.GL_TIMESTAMP);
-            gl.glDispatchCompute(dataCount, 1, 1);
+                IntBuffer timesBuffer = IntBuffer.allocate(2);
+                gl.glGenQueries(2, timesBuffer);
 
-            gl.glQueryCounter(timesBuffer.get(1), GL4.GL_TIMESTAMP);
-            getAndShowTime(gl, timesBuffer);
+                IntBuffer invocationsQueryId;
+                if (!STOPWATCH) {
+                    // https://www.khronos.org/registry/OpenGL/extensions/ARB/ARB_pipeline_statistics_query.txt
+                    invocationsQueryId = IntBuffer.allocate(1);
+                    gl.glGenQueries(1, invocationsQueryId);
+                    gl.glBeginQuery(GL4.GL_COMPUTE_SHADER_INVOCATIONS_ARB, invocationsQueryId.get(0));
+                }
 
-            // get compute shader invocations count
-            gl.glEndQuery(GL4.GL_COMPUTE_SHADER_INVOCATIONS_ARB);
-            IntBuffer invocationsCount = IntBuffer.allocate(1);
-            gl.glGetQueryObjectiv(invocationsQueryId.get(0), GL4.GL_QUERY_RESULT, invocationsCount);
-            System.out.println("Compute shader invocations: " + invocationsCount.get(0));
+                gl.glUseProgram(computeProgram);
 
-            if (PRINT) {
-                // make sure writing to image has finished before read
-                gl.glMemoryBarrier(GL4.GL_SHADER_STORAGE_BARRIER_BIT);
+                gl.glUniform1i(locBrown, brownGroup ? 1 : 0);
+                gl.glUniform1i(locGroupSize, currentGroupSize);
+                gl.glUniform1i(locDataCount, dataCount);
+
+                // set input and output buffer
                 gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
-                gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, ITEM_SIZE * dataCount, data);
-                data.rewind();
-                System.out.println("Output values");
-                print(data);
+                gl.glBindBufferBase(GL4.GL_SHADER_STORAGE_BUFFER, 0, locBuffer[0]);
+
+                // dispatch compute, query counter
+                gl.glQueryCounter(timesBuffer.get(0), GL4.GL_TIMESTAMP);
+                gl.glDispatchCompute(dataCount, 1, 1);
+
+                gl.glQueryCounter(timesBuffer.get(1), GL4.GL_TIMESTAMP);
+                totalTime += getAndShowTime(gl, timesBuffer, STOPWATCH);
+
+                // get compute shader invocations count
+                if (!STOPWATCH) {
+                    gl.glEndQuery(GL4.GL_COMPUTE_SHADER_INVOCATIONS_ARB);
+                    IntBuffer invocationsCount = IntBuffer.allocate(1);
+                    gl.glGetQueryObjectiv(invocationsQueryId.get(0), GL4.GL_QUERY_RESULT, invocationsCount);
+                    System.out.println("Compute shader invocations: " + invocationsCount.get(0));
+                }
+
+                if (PRINT) {
+                    // make sure writing to image has finished before read
+                    gl.glMemoryBarrier(GL4.GL_SHADER_STORAGE_BARRIER_BIT);
+                    gl.glBindBuffer(GL4.GL_SHADER_STORAGE_BUFFER, locBuffer[0]);
+                    gl.glGetBufferSubData(GL4.GL_SHADER_STORAGE_BUFFER, 0, ITEM_SIZE * dataCount, data);
+                    data.rewind();
+                    System.out.println("Output values");
+                    print(data);
+                }
+
+                if (currentGroupSize == 2) {
+                    brownGroup = true;
+                    iterationsCount++;
+                    currentGroupSize = (int) Math.pow(2, iterationsCount);
+                } else {
+                    brownGroup = false;
+                    currentGroupSize /= 2;
+                }
+
+                if (iterationsCount == iterationsGoal + 1) {
+                    System.out.println("Total time: " + totalTime + " ms");
+
+                    if (count > 0) { // ignore first (-1) time
+                        timesSum += totalTime;
+                    } else if (STOPWATCH) {
+                        System.out.println("IGNORED");
+                    }
+                    finish = true;
+                    System.out.println(count);
+                    System.out.println();
+                    totalTime = 0;
+                }
             }
 
-            if (currentGroupSize == 2) {
-                brownGroup = true;
-                iterationsCount++;
-                currentGroupSize = (int) Math.pow(2, iterationsCount);
-            } else {
-                brownGroup = false;
-                currentGroupSize /= 2;
-            }
-
-            if (iterationsCount == iterationsGoal + 1) {
-                System.out.println();
-                System.out.println("Total time: " + totalTime + " ms");
-                dispose(glDrawable);
-                System.exit(0);
+            if (!STOPWATCH) {
+                break;
             }
         }
-    }
 
-    private void getAndShowTime(GL4 gl, IntBuffer timesBuffer) {
-        IntBuffer stopTimerAvailable = IntBuffer.allocate(1);
-        stopTimerAvailable.put(0, 0);
-        while (stopTimerAvailable.get(0) == 0) {
-            gl.glGetQueryObjectiv(timesBuffer.get(1), GL4.GL_QUERY_RESULT_AVAILABLE, stopTimerAvailable);
+        if (STOPWATCH) {
+            System.out.println("Mean time: " + (timesSum / (count - 1)));
         }
-        LongBuffer time1 = LongBuffer.allocate(1);
-        LongBuffer time2 = LongBuffer.allocate(1);
-        gl.glGetQueryObjectui64v(timesBuffer.get(0), GL4.GL_QUERY_RESULT, time1);
-        gl.glGetQueryObjectui64v(timesBuffer.get(1), GL4.GL_QUERY_RESULT, time2);
 
-        double time = (time2.get(0) - time1.get(0)) / 1000000.0;
-        totalTime += time;
-        System.out.println(String.format("Time spent on the GPU (dispatch): %f ms", time));
+        dispose(glDrawable);
+        System.exit(0);
     }
 
     @Override
