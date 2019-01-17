@@ -54,7 +54,7 @@ class RendererUtils {
         gl.glGetQueryObjectui64v(timesBuffer.get(0), GL4.GL_QUERY_RESULT, time1);
         gl.glGetQueryObjectui64v(timesBuffer.get(1), GL4.GL_QUERY_RESULT, time2);
 
-        double time = (time2.get(0) - time1.get(0)) / 1000000.0;
+        double time = (time2.get(0) - time1.get(0)) / 1_000_000.0;
 
         if (!stopwatch) {
             System.out.println(String.format("Time spent on the GPU (dispatch): %f ms", time));

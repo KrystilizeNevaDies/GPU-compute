@@ -19,7 +19,7 @@ public class CpuMaxMulti {
         final CountDownLatch latch2 = new CountDownLatch(threadsCount);
 
         // prepare data variables
-        final int originalDataSize = 150000000;
+        final int originalDataSize = 150_000_000;
         // 1.5 billion, 6 GB RAM (integer has 4 bytes) - VM options -Xms8g -Xmx8g
         final int[] data = new int[originalDataSize];
 

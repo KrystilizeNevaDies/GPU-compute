@@ -21,7 +21,7 @@ public class CpuMaxSingle {
             double times = 0;
             int zeros = 0;
             long max = 0; // only done so JIT doesn't over-optimize for loop, which was happening when maxTemp was not used
-            final int count = m <= 20 ? 100000 : (m <= 25 ? 10000 : 500);
+            final int count = m <= 20 ? 100_000 : (m <= 25 ? 10_000 : 500);
 
             for (int c = 0; c < count; c++) {
                 final int[] data = new int[dataSize];
@@ -39,7 +39,7 @@ public class CpuMaxSingle {
                 }
 
                 long result = (System.nanoTime() - time);
-                times += (result / 1000000.0);
+                times += (result / 1_000_000.0);
                 if (result <= 0) zeros++;
                 max += maxTemp;
             }

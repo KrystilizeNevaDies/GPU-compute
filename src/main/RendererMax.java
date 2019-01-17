@@ -75,11 +75,11 @@ public class RendererMax implements GLEventListener {
         System.out.println("DONE");
 
 //        long time = System.currentTimeMillis();
-//        IntBuffer testData = IntBuffer.allocate(400000000);
+//        IntBuffer testData = IntBuffer.allocate(400_000_000);
 //        System.out.println(System.currentTimeMillis() - time);
 //
 //        time = System.currentTimeMillis();
-//        IntBuffer testData2 = Buffers.newDirectIntBuffer(testData.array(), 0, 100000000);
+//        IntBuffer testData2 = Buffers.newDirectIntBuffer(testData.array(), 0, 100_000_000);
 //        System.out.println(System.currentTimeMillis() - time);
     }
 

@@ -48,7 +48,7 @@ public class CpuBitonicSort {
 
                 long time = System.nanoTime();
                 bitonicSort(logn, a0);
-                timesSum += ((System.nanoTime() - time) / 1000000.0);
+                timesSum += ((System.nanoTime() - time) / 1_000_000.0);
 
 //                print(a0);
             }
