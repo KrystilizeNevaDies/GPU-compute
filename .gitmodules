@@ -1,6 +1,6 @@
-[submodule "src/oglutils"]
-	path = src/oglutils
-	url = https://gitlab.com/honza.vanek/oglutils.git
-[submodule "src/transforms"]
-	path = src/transforms
-	url = https://gitlab.com/honza.vanek/transforms.git
+[submodule "src/krys.oglutils"]
+	path = src/krys.oglutils
+	url = https://gitlab.com/honza.vanek/krys.oglutils.git
+[submodule "src/krys.transforms"]
+	path = src/krys.transforms
+	url = https://gitlab.com/honza.vanek/krys.transforms.git
