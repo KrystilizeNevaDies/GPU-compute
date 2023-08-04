@@ -6,7 +6,7 @@ import java.nio.IntBuffer;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public interface ComputeShader {
+public interface ComputeShader extends AutoCloseable {
 
     static ComputeShader create(CharSequence sourceCode) {
         return new ComputeShaderImpl(sourceCode);
@@ -14,6 +14,9 @@ public interface ComputeShader {
 
     CompletableFuture<FloatResult> computeFloat(Map<String, Object> uniforms, int sizeX, int sizeY, int sizeZ);
     CompletableFuture<IntResult> computeInt(Map<String, Object> uniforms, int sizeX, int sizeY, int sizeZ);
+
+    @Override
+    void close();
 
     interface Result<B extends Buffer> {
         /**

@@ -1,11 +1,13 @@
 import org.lwjgl.Lwjgl
+import org.lwjgl.Release
 import org.lwjgl.Snapshot
+import org.lwjgl.lwjgl
 
 plugins {
     java
     `java-library`
     `maven-publish`
-    id("org.lwjgl.plugin") version "0.0.20"
+    id("org.lwjgl.plugin") version "0.0.34"
 }
 
 group = "org.krystilize"
@@ -23,8 +25,9 @@ tasks.withType<Jar> {
 }
 
 dependencies {
-    Lwjgl {
-//        this.allNatives = true;
+    lwjgl {
+        version = Release.latest
+        this.nativesForEveryPlatform = true
         implementation(Lwjgl.Module.core)
         implementation(Lwjgl.Module.glfw)
         implementation(Lwjgl.Module.opengl)

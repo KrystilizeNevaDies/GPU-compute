@@ -11,6 +11,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static org.lwjgl.opengl.GL43C.*;
 
@@ -47,9 +50,11 @@ import static org.lwjgl.opengl.GL43C.*;
  */
 class ComputeShaderImpl implements ComputeShader {
 
-    public static ComputeShader create(CharSequence shader) {
-        return new ComputeShaderImpl(shader);
-    }
+    private final ScheduledExecutorService SERVICE = Executors.newSingleThreadScheduledExecutor((runnable) -> {
+        Thread thread = new Thread(runnable, "ComputeShaderImpl");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     /**
      * The shader program handle of the compute shader.
@@ -58,33 +63,36 @@ class ComputeShaderImpl implements ComputeShader {
 
     ComputeShaderImpl(CharSequence shader) {
         /* Create all needed GL resources */
-        computeProgram = createComputeProgram(shader).join();
+        try {
+            SERVICE.submit(GLSLShaderEnvironment::initialize).get();
+            computeProgram = SERVICE.submit(() -> createComputeProgram(shader)).get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RuntimeException("Failed to create compute shader", e);
+        }
     }
 
     /**
      * Create the tracing compute shader program.
      */
-    private CompletableFuture<Integer> createComputeProgram(CharSequence shaderSource) {
-        return CompletableFuture.supplyAsync(() -> {
-            /*
-             * Compile our GLSL compute shader. It does not look any different to creating a
-             * program with vertex/fragment shaders. The only thing that changes is the
-             * shader type, now being GL_COMPUTE_SHADER.
-             */
-            int program = glCreateProgram();
-            int cshader = Utils.compileShader(shaderSource.toString(), GL_COMPUTE_SHADER);
-            glAttachShader(program, cshader);
-            glLinkProgram(program);
-            int linked = glGetProgrami(program, GL_LINK_STATUS);
-            String programLog = glGetProgramInfoLog(program);
-            if (programLog.trim().length() > 0) {
-                System.err.println(programLog);
-            }
-            if (linked == 0) {
-                throw new AssertionError("Could not link program");
-            }
-            return computeProgram;
-        }, GLSLShaderExecutor.executor());
+    private int createComputeProgram(CharSequence shaderSource) {
+        /*
+         * Compile our GLSL compute shader. It does not look any different to creating a
+         * program with vertex/fragment shaders. The only thing that changes is the
+         * shader type, now being GL_COMPUTE_SHADER.
+         */
+        int program = glCreateProgram();
+        int cshader = Utils.compileShader(shaderSource.toString(), GL_COMPUTE_SHADER);
+        glAttachShader(program, cshader);
+        glLinkProgram(program);
+        int linked = glGetProgrami(program, GL_LINK_STATUS);
+        String programLog = glGetProgramInfoLog(program);
+        if (programLog.trim().length() > 0) {
+            System.err.println(programLog);
+        }
+        if (linked == 0) {
+            throw new AssertionError("Could not link program");
+        }
+        return program;
     }
 
     private void compute(Map<String, Object> uniforms, int format, int sizeX, int sizeY, int sizeZ) {
@@ -130,7 +138,7 @@ class ComputeShaderImpl implements ComputeShader {
             glBindTexture(GL_TEXTURE_3D, 0);
 
             return new FloatResultImpl(floatBuffer, sizeX, sizeY, sizeZ);
-        }, GLSLShaderExecutor.executor());
+        }, SERVICE);
     }
 
     @Override
@@ -145,7 +153,12 @@ class ComputeShaderImpl implements ComputeShader {
             glBindTexture(GL_TEXTURE_3D, 0);
 
             return new IntResultImpl(intBuffer, sizeX, sizeY, sizeZ);
-        }, GLSLShaderExecutor.executor());
+        }, SERVICE);
+    }
+
+    @Override
+    public void close() {
+        SERVICE.submit(() -> glDeleteProgram(computeProgram));
     }
 
     private record FloatResultImpl(FloatBuffer buffer, int sizeX, int sizeY, int sizeZ) implements FloatResult {

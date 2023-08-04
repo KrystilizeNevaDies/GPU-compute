@@ -11,20 +11,9 @@ import java.util.concurrent.Executors;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-class GLSLShaderExecutor {
-    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
+class GLSLShaderEnvironment {
 
-    static boolean initialized = false;
-
-    public synchronized static Executor executor() {
-        if (!initialized) {
-            CompletableFuture.runAsync(GLSLShaderExecutor::initialize, executor).join();
-            initialized = true;
-        }
-        return executor;
-    }
-
-    private static void initialize() {
+    public static void initialize() {
         // Setup executor
         /*
          * Set a GLFW error callback to be notified about any error messages GLFW

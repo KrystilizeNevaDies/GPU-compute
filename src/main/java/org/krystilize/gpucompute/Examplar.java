@@ -152,25 +152,23 @@ void main(void) {
     public static void main(String[] args) {
         System.out.println("Starting...");
         int width = 10;
-        {
-            ComputeShader computeShader = ComputeShader.create(FLOAT_SOURCE);
+        try (ComputeShader computeShader = ComputeShader.create(FLOAT_SOURCE)) {
             ComputeShader.FloatResult result = computeShader.computeFloat(Map.of(), width, width, width).join();
             FloatBuffer buffer = result.direct();
             FloatBuffer copy = FloatBuffer.allocate(width * width * width);
             for (int i = 0; i < width * width * width; i++) {
                 copy.put(buffer.get());
             }
-            System.out.println(Arrays.toString(copy.array()));
+            System.out.println("float: " + Arrays.toString(copy.array()));
         }
-        {
-            ComputeShader computeShader = ComputeShader.create(INT_SOURCE);
+        try (ComputeShader computeShader = ComputeShader.create(INT_SOURCE)) {
             ComputeShader.IntResult result = computeShader.computeInt(Map.of(), width, width, width).join();
             IntBuffer buffer = result.direct();
             IntBuffer copy = IntBuffer.allocate(width * width * width);
             for (int i = 0; i < width * width * width; i++) {
                 copy.put(buffer.get());
             }
-            System.out.println(Arrays.toString(copy.array()));
+            System.out.println("int: " + Arrays.toString(copy.array()));
         }
     }
 }
