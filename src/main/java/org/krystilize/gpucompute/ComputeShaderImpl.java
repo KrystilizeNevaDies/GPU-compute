@@ -7,6 +7,7 @@ package org.krystilize.gpucompute;
 import krys.Utils;
 import org.lwjgl.BufferUtils;
 
+import java.lang.ref.Cleaner;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Map;
@@ -69,6 +70,17 @@ class ComputeShaderImpl implements ComputeShader {
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException("Failed to create compute shader", e);
         }
+
+        // Setup cleanup
+        Cleaner cleaner = Cleaner.create();
+
+        // We need to explicitly cache local variables here to separate them from `this` when `this` is getting GCed
+        ScheduledExecutorService SERVICE = this.SERVICE;
+        int computeProgram = this.computeProgram;
+        cleaner.register(this, () -> {
+            SERVICE.submit(() -> glDeleteProgram(computeProgram));
+            SERVICE.shutdown();
+        });
     }
 
     /**
@@ -154,11 +166,6 @@ class ComputeShaderImpl implements ComputeShader {
 
             return new IntResultImpl(intBuffer, sizeX, sizeY, sizeZ);
         }, SERVICE);
-    }
-
-    @Override
-    public void close() {
-        SERVICE.submit(() -> glDeleteProgram(computeProgram));
     }
 
     private record FloatResultImpl(FloatBuffer buffer, int sizeX, int sizeY, int sizeZ) implements FloatResult {
