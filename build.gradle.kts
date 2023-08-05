@@ -20,7 +20,6 @@ repositories {
 
 // Include source code in the jar
 tasks.withType<Jar> {
-    archiveClassifier.set("sources")
     from(sourceSets.main.get().allSource)
 }
 

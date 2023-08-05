@@ -4,7 +4,6 @@
  */
 package org.krystilize.gpucompute;
 
-import krys.Utils;
 import org.lwjgl.BufferUtils;
 
 import java.lang.ref.Cleaner;
@@ -18,37 +17,6 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static org.lwjgl.opengl.GL43C.*;
 
-/**
- * This is the first part of a small code-centric tutorial on ray tracing with
- * LWJGL 3 and OpenGL's compute shaders. The way these tutorials work is by
- * simply reading JavaDoc and inline comments as you work your way through the
- * Java code in a pretty much "top-to-bottom" way. Everything necessary will be
- * mentioned and explained as your read. You should be somewhat familiar with
- * Java, OpenGL and with how LWJGL 3 translates the native OpenGL API to Java.
- * <p>
- * The focus of this part will be to set up everything needed for a first
- * working ray tracer to render a scene of a few uncolored boxes. Later parts
- * will cover more and more advanced topics. But for now, this part will only
- * cover the following:
- * <ul>
- * <li>Create a GLFW window to present the final raytraced/rendered image on
- * <li>Allocate a texture to act as our framebuffer for the ray tracer
- * <li>Compile a GLSL compute shader and properly bind to its interface
- * uniforms, especially the framebuffer texture
- * <li>Call the GLSL compute shader to render our scene image
- * <li>Present the rendered image on the GLFW window
- * <li>In addition, a simple way to rotate around the scene via the mouse
- * </ul>
- * <p>
- * The goal is to create a very simple ray tracer able to trace "primary" rays
- * originating from the eye through the scene and detect any intersections with
- * scene geometry (in the form of axis-aligned boxes). In this first part, the
- * rendered result will not look different to what you could achieve easily when
- * rasterizing (the usual way to render with OpenGL) the boxes on the window
- * framebuffer. But be patient. Things will get much different in later parts.
- *
- * @author Kai Burjack
- */
 class ComputeShaderImpl implements ComputeShader {
 
     private final ScheduledExecutorService SERVICE = Executors.newSingleThreadScheduledExecutor((runnable) -> {
@@ -93,7 +61,8 @@ class ComputeShaderImpl implements ComputeShader {
          * shader type, now being GL_COMPUTE_SHADER.
          */
         int program = glCreateProgram();
-        int cshader = Utils.compileShader(shaderSource.toString(), GL_COMPUTE_SHADER);
+        int cshader = GLSLShaderEnvironment.compileShader(shaderSource.toString(), GL_COMPUTE_SHADER);
+
         glAttachShader(program, cshader);
         glLinkProgram(program);
         int linked = glGetProgrami(program, GL_LINK_STATUS);

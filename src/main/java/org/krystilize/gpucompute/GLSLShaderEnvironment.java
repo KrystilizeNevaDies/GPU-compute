@@ -9,10 +9,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 class GLSLShaderEnvironment {
-
     public static void initialize() {
         // Setup executor
         /*
@@ -44,5 +45,22 @@ class GLSLShaderEnvironment {
         glfwMakeContextCurrent(window);
 
         GL.createCapabilities();
+    }
+
+    public static int compileShader(String sourceCode, int type) {
+        int shader = glCreateShader(type);
+
+        glShaderSource(shader, sourceCode);
+        glCompileShader(shader);
+
+        int compiled = glGetShaderi(shader, GL_COMPILE_STATUS);
+        String shaderLog = glGetShaderInfoLog(shader);
+        if (shaderLog.trim().length() > 0) {
+            System.err.println(shaderLog);
+        }
+        if (compiled == 0) {
+            throw new AssertionError("Could not compile shader");
+        }
+        return shader;
     }
 }
